@@ -1,12 +1,36 @@
 import { tokens } from '../tokens'
 
 export const COMMANDS = [
-  { id: 'today',    cmd: '/today',    hint: '오늘 날짜',    expand: () => new Date().toLocaleDateString('ko-KR') },
-  { id: 'time',     cmd: '/time',     hint: '현재 시간',    expand: () => new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) },
-  { id: 'tomorrow', cmd: '/tomorrow', hint: '내일 날짜',    expand: () => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toLocaleDateString('ko-KR') } },
-  { id: 'todo',     cmd: '/todo',     hint: '할일 체크박스', expand: () => '- [ ] ' },
-  { id: 'divider',  cmd: '/divider',  hint: '구분선',       expand: () => '\n---\n' },
-  { id: 'quote',    cmd: '/quote',    hint: '인용구',       expand: () => '> ' },
+  {
+    id: 'today', cmd: '/today', hint: '오늘 날짜',
+    run: (editor, range) => editor.chain().focus().deleteRange(range)
+      .insertContent(new Date().toLocaleDateString('ko-KR')).run(),
+  },
+  {
+    id: 'time', cmd: '/time', hint: '현재 시간',
+    run: (editor, range) => editor.chain().focus().deleteRange(range)
+      .insertContent(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })).run(),
+  },
+  {
+    id: 'tomorrow', cmd: '/tomorrow', hint: '내일 날짜',
+    run: (editor, range) => {
+      const d = new Date(); d.setDate(d.getDate() + 1)
+      editor.chain().focus().deleteRange(range)
+        .insertContent(d.toLocaleDateString('ko-KR')).run()
+    },
+  },
+  {
+    id: 'todo', cmd: '/todo', hint: '할일 체크박스',
+    run: (editor, range) => editor.chain().focus().deleteRange(range).toggleTaskList().run(),
+  },
+  {
+    id: 'divider', cmd: '/divider', hint: '구분선',
+    run: (editor, range) => editor.chain().focus().deleteRange(range).setHorizontalRule().run(),
+  },
+  {
+    id: 'quote', cmd: '/quote', hint: '인용구',
+    run: (editor, range) => editor.chain().focus().deleteRange(range).toggleBlockquote().run(),
+  },
 ]
 
 export default function SlashDropdown({ theme = 'light', query = '', selected = 0, onSelect }) {
@@ -22,8 +46,6 @@ export default function SlashDropdown({ theme = 'light', query = '', selected = 
     <div
       onMouseDown={e => e.preventDefault()}
       style={{
-        position: 'absolute', top: '100%', left: 0,
-        marginTop: 6,
         width: 248, padding: 6,
         background: t.dropdownBg,
         border: `0.5px solid ${t.borderStrong}`,

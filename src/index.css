@@ -29,3 +29,108 @@ input, textarea {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
 }
+
+/* ── Tiptap / ProseMirror ── */
+.ProseMirror {
+  outline: none;
+  min-height: 100%;
+  font-size: 13.5px;
+  line-height: 1.6;
+  letter-spacing: -0.005em;
+}
+
+.ProseMirror > * + * { margin-top: 0.25em; }
+.ProseMirror p { margin: 2px 0; }
+
+.ProseMirror h1 {
+  font-size: 15px; font-weight: 700;
+  margin: 2px 0 8px; letter-spacing: -0.015em;
+}
+.ProseMirror h2 {
+  font-size: 13.5px; font-weight: 600;
+  margin: 10px 0 4px;
+}
+
+.ProseMirror blockquote {
+  margin: 6px 0; padding-left: 10px;
+  border-left: 2px solid var(--subtle);
+  color: var(--subtle);
+  font-style: italic; font-size: 13px;
+  line-height: 1.55;
+}
+
+.ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--subtle);
+  margin: 10px 0; opacity: 0.3;
+}
+
+.ProseMirror code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  background: var(--code-bg);
+  padding: 1px 5px; border-radius: 4px;
+}
+
+.ProseMirror ul:not([data-type="taskList"]) {
+  padding-left: 16px; margin: 4px 0 8px;
+}
+
+/* ── Task List ── */
+.ProseMirror ul[data-type="taskList"] {
+  list-style: none; padding: 0; margin: 4px 0 8px;
+}
+.ProseMirror ul[data-type="taskList"] p { margin: 0; }
+
+.ProseMirror ul[data-type="taskList"] li {
+  display: flex; align-items: flex-start;
+  gap: 8px; padding: 2px 0;
+}
+
+.ProseMirror ul[data-type="taskList"] li > label {
+  display: flex; align-items: center;
+  margin-top: 4px; flex-shrink: 0;
+  cursor: pointer; user-select: none;
+}
+
+.ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"] {
+  display: none;
+}
+
+.ProseMirror ul[data-type="taskList"] li > label::before {
+  content: '';
+  display: block;
+  width: 14px; height: 14px;
+  border-radius: 3px;
+  border: 1.5px solid var(--subtle);
+  transition: background 150ms, border-color 150ms;
+  flex-shrink: 0;
+}
+
+/* unchecked */
+.ProseMirror ul[data-type="taskList"] li[data-checked="false"] > label::before {
+  background: transparent;
+}
+
+/* checked — light mode */
+.memo-editor-wrapper .ProseMirror ul[data-type="taskList"] li[data-checked="true"] > label::before {
+  background: #15151A;
+  border-color: #15151A;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 5.5L4 7.5L8 3' stroke='%23FAFAF8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: 10px; background-repeat: no-repeat; background-position: center;
+}
+
+/* checked — dark mode */
+.memo-editor-wrapper.dark .ProseMirror ul[data-type="taskList"] li[data-checked="true"] > label::before {
+  background: #F4F4F5;
+  border-color: #F4F4F5;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 5.5L4 7.5L8 3' stroke='%230F0F11' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: 10px; background-repeat: no-repeat; background-position: center;
+}
+
+.ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.ProseMirror ul[data-type="taskList"] li > div { flex: 1; }

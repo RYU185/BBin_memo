@@ -6,13 +6,8 @@
       "Bash(node --check electron/ipc/window.js)",
       "Bash(node --check electron/preload.js)",
       "Bash(npx vite *)",
-      "Bash(npm run *)",
-      "Bash(node node_modules/electron/install.js)",
-      "Bash(node -e \"require\\('./node_modules/electron'\\); console.log\\('Electron OK:', require\\('./node_modules/electron'\\)\\)\")",
-      "PowerShell(Get-Process *)",
-      "Bash(Get-Process -Name \"electron\" -ErrorAction SilentlyContinue)",
-      "Bash(Select-Object Name, Id, CPU, WS)",
-      "PowerShell(Get-CimInstance *)"
+      "Bash(python *)",
+      "Bash(npm list *)"
     ]
   }
 }
