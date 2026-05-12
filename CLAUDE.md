@@ -160,6 +160,12 @@ CREATE TABLE memo_window (
 
 ---
 
+## 디자인 참고
+- 디자인 핸드오프 파일 위치: `design_handoff_memo_app/`
+- 컴포넌트 구현 시 해당 폴더 디자인 기준으로 맞출 것
+
+---
+
 ## 디자인 토큰
 - **폰트**: Pretendard
 - **모드**: Light (기본) / Dark

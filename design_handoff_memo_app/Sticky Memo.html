@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Sticky Memo — Floating Window</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css"
+/>
+<style>
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: #E9E9E6;
+    font-family: 'Pretendard Variable','Pretendard',-apple-system,BlinkMacSystemFont,sans-serif;
+    -webkit-font-smoothing: antialiased;
+    color: #15151A;
+  }
+  *,*::before,*::after { box-sizing: border-box; }
+  @keyframes stickyCaret { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
+  .desk { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  .desk-light { background: radial-gradient(120% 80% at 30% 0%, #F1F1EE 0%, #E2E2DE 60%, #D6D6D2 100%); }
+  .desk-dark { background: radial-gradient(120% 80% at 30% 0%, #1C1C1F 0%, #131316 60%, #0A0A0C 100%); }
+  .desk::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(0,0,0,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.025) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mix-blend-mode: multiply; opacity: 0.4;
+  }
+  .desk-dark::before {
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    mix-blend-mode: screen; opacity: 0.5;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="sticky-memo.jsx"></script>
+
+<script type="text/babel">
+  const { DesignCanvas, DCSection, DCArtboard, StickyMemo } = window;
+
+  const DeskLight = ({ children }) => <div className="desk desk-light">{children}</div>;
+  const DeskDark = ({ children }) => <div className="desk desk-dark">{children}</div>;
+
+  function App() {
+    return (
+      <DesignCanvas title="Sticky Memo — Floating Window" subtitle="Pretendard · achromatic · light & dark">
+        <DCSection id="default" title="Default">
+          <DCArtboard id="light" label="Light · default" width={460} height={520}>
+            <DeskLight><StickyMemo theme="light" width={340} height={400} /></DeskLight>
+          </DCArtboard>
+          <DCArtboard id="dark" label="Dark · default" width={460} height={520}>
+            <DeskDark><StickyMemo theme="dark" width={340} height={400} /></DeskDark>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="states" title="States">
+          <DCArtboard id="slash-light" label="Light · slash command palette" width={460} height={520}>
+            <DeskLight>
+              <StickyMemo
+                theme="light"
+                width={340}
+                height={400}
+                slashOpen={true}
+                slashQuery=""
+                slashSelected={0}
+                initialContent={`# Tuesday standup\nDraft notes before the call.\n\n/`}
+              />
+            </DeskLight>
+          </DCArtboard>
+          <DCArtboard id="slash-dark" label="Dark · slash · filtered “/t”" width={460} height={520}>
+            <DeskDark>
+              <StickyMemo
+                theme="dark"
+                width={340}
+                height={400}
+                slashOpen={true}
+                slashQuery="/t"
+                slashSelected={1}
+                initialContent={`# Migration plan\nCutover at 02:00.\n\n/t`}
+              />
+            </DeskDark>
+          </DCArtboard>
+          <DCArtboard id="dropdown-light" label="Light · “…” dropdown open" width={460} height={520}>
+            <DeskLight>
+              <StickyMemo theme="light" width={340} height={400} dropdownOpen={true} />
+            </DeskLight>
+          </DCArtboard>
+          <DCArtboard id="dropdown-dark" label="Dark · “…” dropdown open" width={460} height={520}>
+            <DeskDark>
+              <StickyMemo theme="dark" width={340} height={400} dropdownOpen={true} />
+            </DeskDark>
+          </DCArtboard>
+          <DCArtboard id="pinned-light" label="Light · pinned, group off" width={460} height={520}>
+            <DeskLight>
+              <StickyMemo theme="light" width={340} height={400} pinned={true} grouped={false} initialContent={`# Drafting the resignation letter\nTwo weeks notice. Keep it warm, no drama.\n\n- Lead with thanks\n- One paragraph on transition plan\n- Offer to help interview the replacement\n\n> Send Friday afternoon, not Monday morning.`} />
+            </DeskLight>
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="sizes" title="Sizes">
+          <DCArtboard id="small-light" label="Light · 260 × 320" width={380} height={440}>
+            <DeskLight>
+              <StickyMemo theme="light" width={260} height={320} initialContent={`# Quick\n- Bread\n- Lemons\n- That \`book\``} />
+            </DeskLight>
+          </DCArtboard>
+          <DCArtboard id="wide-dark" label="Dark · 420 × 320" width={540} height={440}>
+            <DeskDark>
+              <StickyMemo theme="dark" width={420} height={320} initialContent={`# Server migration plan\nCutover window: **Sunday 02:00–04:00**. Roll-back path documented.\n\n- Snapshot prod db at 01:55\n- Flip DNS at 02:05\n- Smoke tests at 02:20\n- All-clear ping to *#eng-ops* by 02:45`} />
+            </DeskDark>
+          </DCArtboard>
+        </DCSection>
+      </DesignCanvas>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
