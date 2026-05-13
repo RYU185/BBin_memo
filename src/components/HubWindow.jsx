@@ -1,18 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { tokens } from '../tokens'
 import * as Icon from './icons'
+import { extractPreview, formatDate } from '../lib/memoText'
 
 const api = window.api
-
-function formatDate(ts) {
-  if (!ts) return ''
-  const d = new Date(ts)
-  const now = new Date()
-  const diffDays = Math.floor((now - d) / 86400000)
-  if (diffDays === 0) return `오늘 ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`
-  if (diffDays === 1) return '어제'
-  return `${d.getMonth()+1}월 ${d.getDate()}일`
-}
 
 function CardMenu({ isDark, t, onDelete, onClose }) {
   return (
@@ -51,7 +42,7 @@ function CardMenu({ isDark, t, onDelete, onClose }) {
 
 function MemoCard({ memo, theme, isDark, t, selected, menuOpen, onSelect, onMenuToggle, onDelete }) {
   const [hover, setHover] = useState(false)
-  const preview = memo.content?.split('\n').filter(Boolean)[0]?.replace(/^#+\s*/, '').replace(/\*\*/g, '').replace(/\*/g, '') || ''
+  const preview = extractPreview(memo.content)
 
   return (
     <div
@@ -270,7 +261,7 @@ export default function HubWindow({ theme = 'light' }) {
       </div>
 
       {/* Memo list */}
-      <div style={{
+      <div className="hub-memo-list" style={{
         flex: 1, overflowY: 'auto',
         padding: '10px 12px 80px',
         background: t.surface,

@@ -1,0 +1,58 @@
+Codemap Diff Report
+===================
+Generated: 2026-05-13
+Project: BBin Memo (Electron + React + Vite + SQLite)
+Codemap directory: docs/CODEMAPS/
+
+Previous codemaps: NONE (first generation)
+Diff ratio: N/A (100% new content, no prior baseline)
+Confirmation gate (>30% change): N/A — no existing files to compare against.
+                                  All four files are net-new, so the
+                                  threshold rule did not trigger.
+
+Files written
+-------------
+[NEW] docs/CODEMAPS/architecture.md   (Electron main/renderer split, IPC namespaces, window topology, group focus, session restore)
+[NEW] docs/CODEMAPS/frontend.md       (src/* module map, component responsibilities, lib/memoText pure utils, vitest)
+[NEW] docs/CODEMAPS/backend.md        (electron/* module map, IPC handler tables, DB layer, build config)
+[NEW] docs/CODEMAPS/data.md           (schema, IPC specs, content format round-trip, data flow scenarios)
+
+Source files scanned
+--------------------
+electron/main.js
+electron/preload.js
+electron/ipc/memo.js
+electron/ipc/window.js
+electron/db/index.js
+electron/db/schema.sql
+src/main.jsx
+src/App.jsx
+src/tokens.js
+src/index.css
+src/components/HubWindow.jsx
+src/components/MemoWindow.jsx
+src/components/SlashDropdown.jsx
+src/components/icons.jsx
+src/lib/memoText.js
+src/lib/__tests__/memoText.test.js
+package.json
+
+Notable findings (for follow-up, not blocking codemap commit)
+-------------------------------------------------------------
+1. Slash command mismatch with CLAUDE.md spec:
+   - Spec lists:        /date  /time  /tomorrow  /todo  /hr    /code
+   - Implementation:    /today /time  /tomorrow  /todo  /divider /quote
+   Either the spec or SlashDropdown.COMMANDS should be reconciled.
+
+2. window:updateBounds is exposed via preload but never invoked from the
+   renderer; bounds are persisted exclusively from the main process via
+   the BrowserWindow 'moved'/'resized' listeners. Consider removing the
+   IPC channel or wiring it from renderer for parity.
+
+3. Theme is hard-coded to 'light' in App.jsx, although tokens.js fully
+   supports dark mode. Light/dark switching is unimplemented (open item
+   from CLAUDE.md "개발 순서" step 10).
+
+4. memo.content stores Tiptap JSON; parseContent in src/lib/memoText.js
+   migrates any legacy markdown content on first load. There is no
+   migration script — relying on lazy migration.

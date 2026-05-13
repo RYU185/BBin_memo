@@ -7,34 +7,7 @@ import Underline from '@tiptap/extension-underline'
 import { tokens } from '../tokens'
 import * as Icon from './icons'
 import SlashDropdown, { COMMANDS } from './SlashDropdown'
-
-function parseContent(raw) {
-  if (!raw) return null
-  try {
-    const doc = JSON.parse(raw)
-    if (doc.type === 'doc') return doc
-  } catch {}
-  // 기존 마크다운 문자열 → 단순 단락으로 마이그레이션
-  const lines = raw.split('\n')
-  return {
-    type: 'doc',
-    content: lines.map(line =>
-      line.trim()
-        ? { type: 'paragraph', content: [{ type: 'text', text: line }] }
-        : { type: 'paragraph' }
-    ),
-  }
-}
-
-function extractTitle(json) {
-  const node = json?.content?.find(n => n.content?.length)
-  if (!node) return ''
-  return node.content
-    .filter(n => n.type === 'text')
-    .map(n => n.text)
-    .join('')
-    .slice(0, 80)
-}
+import { parseContent, extractTitle } from '../lib/memoText'
 
 function findSlash(editor) {
   const { state } = editor
@@ -369,6 +342,7 @@ export default function MemoWindow({ memoId, theme = 'light' }) {
       {/* Body */}
       <div
         className={`memo-editor-wrapper${isDark ? ' dark' : ''}`}
+        onClick={() => editor?.commands.focus()}
         style={{
           flex: 1, padding: '16px 18px 14px',
           overflow: 'auto', position: 'relative',
