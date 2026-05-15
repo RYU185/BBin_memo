@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import './index.css'
 import HubWindow from './components/HubWindow'
 import MemoWindow from './components/MemoWindow'
+import SlashOverlay from './components/SlashOverlay'
 
 export default function App() {
   const [params, setParams] = useState(null)
@@ -18,6 +19,8 @@ export default function App() {
   if (!params) return null
 
   const theme = 'light'
+
+  if (params.type === 'slash') return <SlashOverlay theme={theme} />
 
   if (params.type === 'memo' && params.memoId) {
     return <MemoWindow memoId={params.memoId} theme={theme} />

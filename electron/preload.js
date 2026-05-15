@@ -21,6 +21,22 @@ contextBridge.exposeInMainWorld('api', {
     toggleGroup: (memo_id) => ipcRenderer.invoke('app:toggleGroup', memo_id),
     focusGroup: () => ipcRenderer.invoke('app:focusGroup'),
   },
+  slash: {
+    show: (data) => ipcRenderer.invoke('slash:show', data),
+    hide: () => ipcRenderer.invoke('slash:hide'),
+    update: (data) => ipcRenderer.invoke('slash:update', data),
+    select: (cmdId) => ipcRenderer.invoke('slash:select', cmdId),
+    onState: (cb) => {
+      const fn = (_, s) => cb(s)
+      ipcRenderer.on('slash:state', fn)
+      return () => ipcRenderer.off('slash:state', fn)
+    },
+    onSelected: (cb) => {
+      const fn = (_, id) => cb(id)
+      ipcRenderer.on('slash:selected', fn)
+      return () => ipcRenderer.off('slash:selected', fn)
+    },
+  },
   hub: {
     show: () => ipcRenderer.invoke('hub:show'),
   },

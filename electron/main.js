@@ -3,9 +3,18 @@ const path = require('path')
 
 const isDev = !app.isPackaged
 
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err)
+})
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection]', reason)
+})
+
 // memoWindows, createMemoWindow는 db 초기화 이후 사용되므로 whenReady 안에서 선언
 const memoWindows = new Map()
 let hubWindow = null
+let slashWindow = null
+let slashSender = null
 
 function loadWindow(win, params = {}) {
   if (isDev) {
@@ -34,6 +43,23 @@ function createHubWindow() {
   hubWindow.on('closed', () => {
     hubWindow = null
   })
+}
+
+function createSlashWindow() {
+  const win = new BrowserWindow({
+    width: 264, height: 300,
+    frame: false, transparent: true,
+    alwaysOnTop: true, skipTaskbar: true,
+    resizable: false, show: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  })
+  loadWindow(win, { window: 'slash' })
+  win.on('closed', () => { slashWindow = null })
+  return win
 }
 
 function createMemoWindow(memoId, bounds) {
@@ -101,6 +127,62 @@ app.whenReady().then(() => {
 
   registerMemoHandlers()
   registerWindowHandlers(memoWindows, createMemoWindow)
+
+  ipcMain.handle('slash:show', (event, { x, y, query, selected }) => {
+    try {
+      slashSender = event.sender
+      if (!slashWindow || slashWindow.isDestroyed()) slashWindow = createSlashWindow()
+      slashWindow.setBounds({ x, y, width: 264, height: 300 })
+      const state = { query, selected }
+      if (slashWindow.webContents.isLoading()) {
+        slashWindow.webContents.once('did-finish-load', () => {
+          if (!slashWindow || slashWindow.isDestroyed()) return
+          slashWindow.webContents.send('slash:state', state)
+          slashWindow.showInactive()
+        })
+      } else {
+        slashWindow.webContents.send('slash:state', state)
+        slashWindow.showInactive()
+      }
+    } catch (err) {
+      console.error('[slash:show]', err)
+      throw err
+    }
+  })
+
+  ipcMain.handle('slash:update', (_, { query, selected }) => {
+    try {
+      if (slashWindow && !slashWindow.isDestroyed()) {
+        slashWindow.webContents.send('slash:state', { query, selected })
+      }
+    } catch (err) {
+      console.error('[slash:update]', err)
+      throw err
+    }
+  })
+
+  ipcMain.handle('slash:hide', () => {
+    try {
+      if (slashWindow && !slashWindow.isDestroyed()) slashWindow.hide()
+      slashSender = null
+    } catch (err) {
+      console.error('[slash:hide]', err)
+      throw err
+    }
+  })
+
+  ipcMain.handle('slash:select', (_, cmdId) => {
+    try {
+      if (slashSender && !slashSender.isDestroyed()) {
+        slashSender.send('slash:selected', cmdId)
+      }
+      if (slashWindow && !slashWindow.isDestroyed()) slashWindow.hide()
+      slashSender = null
+    } catch (err) {
+      console.error('[slash:select]', err)
+      throw err
+    }
+  })
 
   ipcMain.handle('hub:show', () => {
     if (hubWindow && !hubWindow.isDestroyed()) {

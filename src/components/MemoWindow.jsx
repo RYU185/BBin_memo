@@ -6,7 +6,7 @@ import TaskItem from '@tiptap/extension-task-item'
 import Underline from '@tiptap/extension-underline'
 import { tokens } from '../tokens'
 import * as Icon from './icons'
-import SlashDropdown, { COMMANDS } from './SlashDropdown'
+import { COMMANDS } from './SlashDropdown'
 import { parseContent, extractTitle } from '../lib/memoText'
 
 function findSlash(editor) {
@@ -22,7 +22,7 @@ function findSlash(editor) {
   return {
     query: '/' + match[1],
     range: { from: slashFrom, to: from },
-    pos: { top: coords.bottom + 6, left: coords.left },
+    pos: { top: coords.bottom + 6, cursorTop: coords.top, left: coords.left },
   }
 }
 
@@ -131,9 +131,6 @@ export default function MemoWindow({ memoId, theme = 'light' }) {
   const [isGrouped, setIsGrouped] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
   const [slashOpen, setSlashOpen] = useState(false)
-  const [slashQuery, setSlashQuery] = useState('')
-  const [slashIdx, setSlashIdx] = useState(0)
-  const [slashPos, setSlashPos] = useState(null)
   const [slashRange, setSlashRange] = useState(null)
 
   // ref로 최신 슬래시 상태 유지 (handleKeyDown 클로저 문제 방지)
@@ -165,13 +162,27 @@ export default function MemoWindow({ memoId, theme = 'light' }) {
       if (found) {
         const q = found.query.replace(/^\//, '').toLowerCase()
         const cmds = q ? COMMANDS.filter(c => c.cmd.slice(1).startsWith(q)) : COMMANDS
+        const wasOpen = slashRef.current.open
         slashRef.current = { open: true, idx: 0, query: found.query, range: found.range, cmds }
         setSlashOpen(true)
-        setSlashQuery(found.query)
-        setSlashIdx(0)
-        setSlashPos(found.pos)
         setSlashRange(found.range)
+        if (window.api) {
+          const p = found.pos
+          const ipcData = { query: found.query, selected: 0 }
+          if (!wasOpen) {
+            const DROPDOWN_H = 300
+            const sx = Math.round(window.screenX + p.left)
+            const by = Math.round(window.screenY + p.top)
+            const ay = Math.round(window.screenY + p.cursorTop - DROPDOWN_H)
+            ipcData.x = Math.max(0, Math.min(sx, window.screen.availWidth - 264))
+            ipcData.y = by + DROPDOWN_H <= window.screen.availHeight ? by : Math.max(0, ay)
+            window.api.slash.show(ipcData)
+          } else {
+            window.api.slash.update(ipcData)
+          }
+        }
       } else {
+        if (slashRef.current.open) window.api?.slash.hide()
         slashRef.current = { ...slashRef.current, open: false }
         setSlashOpen(false)
       }
@@ -188,14 +199,14 @@ export default function MemoWindow({ memoId, theme = 'light' }) {
           event.preventDefault()
           const next = Math.min(s.idx + 1, (s.cmds?.length ?? 1) - 1)
           slashRef.current = { ...s, idx: next }
-          setSlashIdx(next)
+          window.api?.slash.update({ query: s.query, selected: next })
           return true
         }
         if (event.key === 'ArrowUp') {
           event.preventDefault()
           const prev = Math.max(s.idx - 1, 0)
           slashRef.current = { ...s, idx: prev }
-          setSlashIdx(prev)
+          window.api?.slash.update({ query: s.query, selected: prev })
           return true
         }
         if (event.key === 'Enter') {
@@ -205,12 +216,14 @@ export default function MemoWindow({ memoId, theme = 'light' }) {
             cmd.run(ed, s.range)
             slashRef.current = { ...s, open: false }
             setSlashOpen(false)
+            window.api?.slash.hide()
             return true
           }
         }
         if (event.key === 'Escape') {
           slashRef.current = { ...s, open: false }
           setSlashOpen(false)
+          window.api?.slash.hide()
           return true
         }
         return false
@@ -220,6 +233,19 @@ export default function MemoWindow({ memoId, theme = 'light' }) {
 
   // editorRef 동기화
   useEffect(() => { editorRef.current = editor }, [editor])
+
+  // 오버레이 창에서 마우스 클릭으로 선택한 경우
+  useEffect(() => {
+    if (!window.api) return
+    return window.api.slash.onSelected((cmdId) => {
+      const s = slashRef.current
+      const cmd = COMMANDS.find(c => c.id === cmdId)
+      const ed = editorRef.current
+      if (cmd && ed && s.range) cmd.run(ed, s.range)
+      slashRef.current = { ...s, open: false }
+      setSlashOpen(false)
+    })
+  }, [])
 
   // 메모 로드
   useEffect(() => {
@@ -234,12 +260,13 @@ export default function MemoWindow({ memoId, theme = 'light' }) {
     })
   }, [editor, memoId])
 
-  // 언마운트 시 즉시 저장
+  // 언마운트 시 즉시 저장 + 슬래시 창 정리
   useEffect(() => {
     return () => {
       clearTimeout(saveTimer.current)
       const ed = editorRef.current
       if (ed) saveContent(ed.getJSON())
+      window.api?.slash.hide()
     }
   }, [saveContent])
 
@@ -354,25 +381,6 @@ export default function MemoWindow({ memoId, theme = 'light' }) {
       >
         <EditorContent editor={editor} />
 
-        {slashOpen && slashPos && (
-          <div style={{
-            position: 'fixed',
-            top: slashPos.top,
-            left: slashPos.left,
-            zIndex: 9998,
-          }}>
-            <SlashDropdown
-              theme={theme}
-              query={slashQuery}
-              selected={slashIdx}
-              onSelect={cmd => {
-                cmd.run(editor, slashRange)
-                slashRef.current = { ...slashRef.current, open: false }
-                setSlashOpen(false)
-              }}
-            />
-          </div>
-        )}
       </div>
 
       {/* Bottom bar */}
